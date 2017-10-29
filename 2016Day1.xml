@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-10-29 12:09:03">
+<Class name="AOC2016.Day1">
+<TimeChanged>64585,42793.480413</TimeChanged>
+<TimeCreated>64582,70017.054312</TimeCreated>
+
+<Method name="Part1">
+<Description>
+http://adventofcode.com/2016/day/1</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="j:\winfo\aoc\day1.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim locX as %Integer = 0
+	#Dim locY as %Integer = 0    ;initial starting point
+	#Dim heading as %Char = "N"  ;start facing North
+	#Dim direction as %Char      ;to hold the current instruction's direction
+	#Dim length as %Integer      ;to hold the current instruction's blocks to walk
+	#Dim line, route as %String
+	#Dim iRoute as %Integer
+	
+	Open file:"R":1 Else  Use 0 Write "Could not open file ",file,! Quit
+ 	Try {
+		For {
+			Use file Read line If line="" Quit
+			Set line=$Translate(line," ")  ;get rid of spaces in input directions
+			For iRoute=1:1:$Length(line,",") {
+				Set route = $Piece(line,",",iRoute)
+				Set direction=$E(route,1)
+				Set length=$E(route,2,*)
+				If (heading="N") {
+					If (direction="R") {
+						Set heading="E"
+						set locX=locX+length
+					} else {
+						Set heading="W"
+						set locX=locX-length
+					}
+				} elseIf (heading="S") {
+					If (direction="R") {
+						Set heading="W"
+						set locX=locX-length
+					} else {
+						Set heading="E"
+						set locX=locX+length
+					}
+				} elseIf (heading = "E") {
+					If (direction="R") {
+						Set heading="S"
+						set locY=locY-length
+					} else {
+						Set heading="N"
+						set locY=locY+length
+					}
+				} elseIf (heading = "W") {
+					If (direction="R") {
+						Set heading="N"
+						set locY=locY+length
+					} else {
+						Set heading="S"
+						set locY=locY-length
+					}
+				}
+			}
+		}
+ 	} Catch {
+ 		If $ZE'["ENDOFFILE" Use 0 Write "Error : ",$ZE,!
+ 	}
+ 	Close file
+	Use 0 Write "[X,Y] = ",locX,",",locY,!,"Answer = ",$ZAbs(locX)+$ZAbs(locY)
+	Quit
+]]></Implementation>
+</Method>
+
+<Method name="Part2">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="j:\winfo\aoc\day1.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim locX as %Integer = 0
+	#Dim locY as %Integer = 0    ;initial starting point
+	#Dim prevX as %Integer = 0
+	#Dim prevY as %Integer = 0   ;previous point
+	#Dim heading as %Char = "N"  ;start facing North
+	#Dim direction as %Char      ;to hold the current instruction's direction
+	#Dim length as %Integer      ;to hold the current instruction's blocks to walk
+	#Dim line, route as %String
+	#Dim iRoute as %Integer
+	#Dim found as %Boolean = 0   ;stop when coordinates were used twice
+	#Dim locations as %String    ;array with all coordinates that were used
+		
+	Open file:"R":1 Else  Use 0 Write "Could not open file ",file Quit
+ 		Try {
+			For {
+				Use file Read line If line="" Quit
+				Set line=$TR(line," ")
+				For iRoute=1:1:$Length(line,",") {
+					Set route = $Piece(line,",",iRoute)
+					Set direction=$E(route,1)
+					Set length=$E(route,2,*)
+					set prevX=locX
+					set prevY=locY
+					If (heading="N") {
+						If (direction="R") {
+							Set heading="E"
+							Set found = ..Walk(length,0,.locX,.locY,.locations)
+						} else {
+							Set heading="W"
+							Set found = ..Walk(-length,0,.locX,.locY,.locations)
+						}
+					} elseIf (heading="S") {
+						If (direction="R") {
+							Set heading="W"
+							Set found = ..Walk(-length,0,.locX,.locY,.locations)
+						} else {
+							Set heading="E"
+							Set found = ..Walk(length,0,.locX,.locY,.locations)
+						}
+					} elseIf (heading = "E") {
+						If (direction="R") {
+							Set heading="S"
+							Set found = ..Walk(0,-length,.locX,.locY,.locations)
+						} else {
+							Set heading="N"
+							Set found = ..Walk(0,length,.locX,.locY,.locations)
+						}
+					} elseIf (heading = "W") {
+						If (direction="R") {
+							Set heading="N"
+							Set found = ..Walk(0,length,.locX,.locY,.locations)
+						} else {
+							Set heading="S"
+							Set found = ..Walk(0,-length,.locX,.locY,.locations)
+						}
+					}
+					If found Quit
+				}
+			}
+ 		} Catch {
+ 			If $ZE'["ENDOFFILE" Use 0 Write "Error : ",$ZE,!
+ 		}
+ 		Close file
+		Use 0 Write "[X,Y] = ",locX,",",locY,!,"Answer = ",$ZAbs(locX)+$ZAbs(locY)
+]]></Implementation>
+</Method>
+
+<Method name="Walk">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[deltaX:%Integer,deltaY:%Integer,&locX:%Integer,&locY:%Integer,&locations:%String]]></FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim dir, i as %Integer
+	#Dim found as %Boolean = 0
+	If deltaX'=0 {
+		Set dir = 1
+		If deltaX<0 { Set dir=-1, deltaX=-deltaX }
+		For i=1:1:deltaX {
+			Set locX=locX+dir
+			If $Data(locations(locX,locY)) Set found = 1 Quit
+			Set locations(locX,locY)=""
+		}
+	} elseIf deltaY'=0 {
+		Set dir = 1
+		If deltaY<0 { Set dir=-1, deltaY=-deltaY }
+		For i=1:1:deltaY {
+			Set locY=locY+dir
+			If $Data(locations(locX,locY)) Set found = 1 Quit
+			Set locations(locX,locY)=""
+		}
+	}
+	Quit found
+]]></Implementation>
+</Method>
+</Class>
+</Export>
