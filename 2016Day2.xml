@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-10-29 12:37:35">
+<Class name="AOC2016.Day2">
+<TimeChanged>64585,45195.13124</TimeChanged>
+<TimeCreated>64583,52187.242708</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="j:\winfo\aoc\day2.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim keypad as %String = ""   ;all the buttons after each line of instructions
+	#Dim button as %Char = "5"    ;current button
+	#Dim heading as %Char         ;instruction heading
+	#Dim line as %String
+	#Dim iPiece as %Integer
+			
+	Open file:"R":1 Else  Use 0 Write "Could not open file ",file Quit
+ 	Try {
+		For {
+			Use file Read line If line="" Quit
+			Set line=$TR(line," ")
+			For iPiece=1:1:$Length(line) {
+				Set heading = $E(line,iPiece)
+				If (heading="U") {
+					Set button=$Case(button,1:1, 2:2, 3:3, 4:1, 5:2, 6:3, 7:4, 8:5, 9:6)
+				} elseIf (heading="D") {
+					Set button=$Case(button,1:4, 2:5, 3:6, 4:7, 5:8, 6:9, 7:7, 8:8, 9:9)
+				} elseIf (heading = "R") {
+					Set button=$Case(button,1:2, 2:3, 3:3, 4:5, 5:6, 6:6, 7:8, 8:9, 9:9)
+				} elseIf (heading = "L") {
+					Set button=$Case(button,1:1, 2:1, 3:2, 4:4, 5:4, 6:5, 7:7, 8:7, 9:8)
+				}
+			}
+			Set keypad = keypad _ button
+		}
+ 	} Catch {
+ 		If $ZE'["ENDOFFILE" Use 0 Write "Error : ",$ZE,!
+ 	}
+ 	Close file
+	Use 0 Write "Password : ",keypad,!
+
+	Quit
+]]></Implementation>
+</Method>
+
+<Method name="Part2">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="j:\winfo\aoc\day2.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim keypad as %String = ""   ;all the buttons after each line of instructions
+	#Dim button as %Char = "5"    ;current button
+	#Dim heading as %Char         ;instruction heading
+	#Dim line as %String
+	#Dim iPiece as %Integer
+
+	Open file:"R":1 Else  Use 0 Write "Could not open file ",file Quit
+ 	Try {
+		For {
+			Use file Read line If line="" Quit
+			Set line=$TR(line," ")
+			For iPiece=1:1:$Length(line) {
+				Set heading = $E(line,iPiece)
+				If (heading="U") {
+					Set button=$Case(button,1:1, 2:2, 3:1, 4:4, 5:5, 6:2,   7:3,   8:4,   9:9, "A":6,   "B":7,   "C":8,   "D":"B")
+				} elseIf (heading="D") {
+					Set button=$Case(button,1:3, 2:6, 3:7, 4:8, 5:5, 6:"A", 7:"B", 8:"C", 9:9, "A":"A", "B":"D", "C":"C", "D":"D")
+				} elseIf (heading = "R") {
+					Set button=$Case(button,1:1, 2:3, 3:4, 4:4, 5:6, 6:7,   7:8,   8:9,   9:9, "A":"B", "B":"C", "C":"C", "D":"D")
+				} elseIf (heading = "L") {
+					Set button=$Case(button,1:1, 2:2, 3:2, 4:3, 5:5, 6:5,   7:6,   8:7,   9:8, "A":"A", "B":"A", "C":"B", "D":"D")
+				}
+			}
+			Set keypad = keypad _ button
+		}
+ 	} Catch {
+ 		If $ZE'["ENDOFFILE" Use 0 Write "Error : ",$ZE,!
+ 	}
+ 	Close file
+	Use 0 Write "Password : ",keypad,!
+
+	Quit
+]]></Implementation>
+</Method>
+</Class>
+</Export>
