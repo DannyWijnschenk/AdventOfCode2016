@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-03 18:05:44">
+<Class name="AOC2016.Day3">
+<TimeChanged>64585,58314.720648</TimeChanged>
+<TimeCreated>64583,53696.967866</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="j:\winfo\aoc\day3.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim possibles as %Integer = 0
+	#Dim line as %String
+	#Dim values as %Integer
+	#Dim t, combi as %String
+	#Dim possible as %Integer
+
+	Open file:"R":1 Else  Use 0 Write "Could not open file ",file Quit
+ 	Try {
+		For {
+			Use file Read line If line="" Quit
+			Set line=$ZStrip(line,"<=>W")
+			For values=1:1:3 Set t(values)=$Piece(line," ",values)
+			Set possible = 1
+			For combi=$lb(1,2,3),$lb(1,3,2),$lb(2,3,1) {
+				If (t($List(combi,1))+t($List(combi,2)))'>t($List(combi,3)) set possible=0 quit
+			}
+			If possible set possibles = possibles + 1
+		}
+	} Catch {
+ 		If $ZE'["ENDOFFILE" Use 0 Write "Error : ",$ZE,!
+ 	}
+ 	Close file
+	Use 0 Write "Possibles : ",possibles,!
+	Quit
+]]></Implementation>
+</Method>
+
+<Method name="Part2">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="j:\winfo\aoc\day3.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim possibles as %Integer = 0
+	#Dim line, combi, t as %String
+	#Dim set, vert as %Integer
+	#Dim possible,values,triangle as %Integer
+
+	Open file:"R":1 Else  Use 0 Write "Could not open file ",file Quit
+	Set possibles = 0
+	Try {
+		For set=1:3 {
+			For vert = 1:1:3 {
+				Use file Read line If line="" Quit
+				Set line=$ZStrip(line,"<=>W")
+				For values=1:1:3 Set t(set+values-1,vert)=$Piece(line," ",values)
+			}
+		}
+ 	} Catch {
+ 		If $ZE'["ENDOFFILE" Use 0 Write "Error : ",$ZE,!
+ 	}
+	Try {
+		set triangle=""	
+		For {
+			Set triangle=$Order(t(triangle)) If triangle="" Quit
+			Set possible = 1
+			For combi=$lb(1,2,3),$lb(1,3,2),$lb(2,3,1) {
+				If (t(triangle,$List(combi,1))+t(triangle,$List(combi,2)))'>t(triangle,$List(combi,3)) set possible=0 quit
+			}
+			If possible set possibles = possibles + 1
+		}
+ 	} Catch {
+ 		Use 0 Write "Error : ",$ZE,!
+ 	}
+ 	Close file
+	Use 0 Write "Possibles : ",possibles,!
+	Quit
+]]></Implementation>
+</Method>
+</Class>
+</Export>
