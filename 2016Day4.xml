@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-05 13:54:47">
+<Class name="AOC2016.Day4">
+<Super>AOC2016.Utils</Super>
+<TimeChanged>64591,70776.008659</TimeChanged>
+<TimeCreated>64583,82295.659555</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day4.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim sumSectorID as %Integer = 0
+	#Dim name, nameChecksum, checksum, letter, dummy, compareCheck, order, line, letters, sort as %String
+	#Dim iInput, sectorID, iLetter as %Integer
+	#Dim input as %String
+	
+ 	Try {
+		Do ..Input(file, .input)
+		For iInput = 1:1:input {
+			Set line = input(iInput)
+			Set name = $Piece(line,"[",1)
+			Set sectorID = $Piece(name,"-",*)
+			Set nameChecksum = $Translate($Piece(name,"-",1,*-1),"-","")
+			Set checksum = $Piece($Piece(line,"[",2),"]",1)
+			Kill letters,sort
+			// count the letters in the name :
+			For iLetter=1:1:$L(nameChecksum) {
+				Set letter=$E(nameChecksum,iLetter)
+				Set dummy=$increment(letters(letter))
+			}
+			//sort the letters to get the most common
+			Set letter="" For {
+				Set letter=$Order(letters(letter)) If letter="" Quit
+				Set sort(letters(letter),letter)=""
+			}
+			//take the first 5 letters
+			Set compareCheck=""
+			Set order="" For {
+				Set order=$Order(sort(order),-1) If order="" Quit
+				Set letter="" For {
+					Set letter=$Order(sort(order,letter)) If letter="" Quit
+					Set compareCheck = compareCheck _ letter
+					If $L(compareCheck)=5 Quit  ;we have the 5 most common letters
+				}
+				If $L(compareCheck)=5 Quit
+			}
+			//compare with checksum and add to grand total if equal
+			If compareCheck = checksum {  ;room is real if checksum is correct
+				Set sumSectorID = sumSectorID + sectorID
+			}
+		}
+ 	} Catch {
+ 		Write "Error : ",$ZE,!
+ 	}
+	Write "Sum of SectorIDs = ",sumSectorID,!
+
+	Quit
+]]></Implementation>
+</Method>
+
+<Method name="Part2">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day4.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim sumSectorID as %Integer = 0
+	#Dim name, nameCipher, nameChecksum, checksum, letter, dummy, compareCheck, order, line, letters, sort as %String
+	#Dim iInput, sectorID, iLetter as %Integer
+	#Dim input as %String
+	
+ 	Try {
+		Do ..Input(file, .input)
+		For iInput = 1:1:input {
+			Set line = input(iInput)
+			Set name = $Piece(line,"[",1)
+			Set sectorID = $Piece(name,"-",*)
+			Set nameCipher = $Piece(name,"-",1,*-1)
+			Set nameChecksum = $Translate($Piece(name,"-",1,*-1),"-","")
+			Set checksum = $Piece($Piece(line,"[",2),"]",1)
+			Kill letters,sort
+			For iLetter=1:1:$L(nameChecksum) {
+				Set letter=$E(nameChecksum,iLetter)
+				Set dummy=$i(letters(letter))
+			}
+			Set letter="" For {  ;sort the letters to get the most common
+				Set letter=$Order(letters(letter)) If letter="" Quit
+				Set sort(letters(letter),letter)=""
+			}
+			Set compareCheck=""
+			Set order="" For {
+				Set order=$Order(sort(order),-1) If order="" Quit
+				Set letter="" For {
+					Set letter=$Order(sort(order,letter)) If letter="" Quit
+					Set compareCheck = compareCheck _ letter
+					If $L(compareCheck)=5 Quit  ;we have the 5 most common letters
+				}
+				If $L(compareCheck)=5 Quit
+			}
+			If compareCheck = checksum {  ;room is real if checksum is correct
+				Set sumSectorID = sumSectorID + sectorID
+				Set nameCipher = ..ShiftCipher(nameCipher, sectorID)
+				If $ZCVT(nameCipher,"l")["north" Write nameCipher," = ",sectorID,!
+			}
+		}
+ 	} Catch {
+ 		Write "Error : ",$ZE,!
+ 	}
+	Write "Sum of SectorIDs = ",sumSectorID,!
+
+	Quit
+]]></Implementation>
+</Method>
+
+<Method name="ShiftCipher">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>s,times</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	#Dim newS as %String
+	#Dim i, iTimes as %Integer
+	#Dim char as %Character
+	
+	//TODO : instead of rotating the string a number of times, we could also calculate the new character directly
+	For iTimes=1:1:times {
+		Set newS = ""
+		For i=1:1:$Length(s) {
+			set char = $Extract(s,i)
+			If (char=" ")!(char="-") {
+				Set newS = newS_" "
+			} elseIf char="Z" {
+				Set newS = newS_"A"
+			} elseIf char="z" {
+				Set newS = newS_"a"
+			} else {
+				Set newS = newS _ $Char($Ascii(char)+1)
+			}
+		}
+		Set s = newS
+	}
+	Quit newS
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="AOC2016.Utils">
+<TimeChanged>64591,72415.909105</TimeChanged>
+<TimeCreated>64585,293.678464</TimeCreated>
+
+<Parameter name="DIR">
+<Default>J:\Winfo\AOC\</Default>
+</Parameter>
+
+<Method name="Input">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[fileName:%String,&input:%String]]></FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim objFileStream As %Stream.FileCharacter
+	#Dim status as %Boolean = 1
+	Set input = 0
+
+	Set objFileStream = ##class(%Stream.FileCharacter).%New()
+	Set status = objFileStream.LinkToFile(..#DIR_fileName)
+	If status=1 {
+		While 'objFileStream.AtEnd {
+			Set input($i(input)) = objFileStream.ReadLine()
+		}
+	}
+ 	Quit status
+]]></Implementation>
+</Method>
+</Class>
+</Export>

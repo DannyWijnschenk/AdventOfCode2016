@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-05 13:54:59">
+<Class name="AOC2016.Utils">
+<TimeChanged>64591,72415.909105</TimeChanged>
+<TimeCreated>64585,293.678464</TimeCreated>
+
+<Parameter name="DIR">
+<Default>J:\Winfo\AOC\</Default>
+</Parameter>
+
+<Method name="Input">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[fileName:%String,&input:%String]]></FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim objFileStream As %Stream.FileCharacter
+	#Dim status as %Boolean = 1
+	Set input = 0
+
+	Set objFileStream = ##class(%Stream.FileCharacter).%New()
+	Set status = objFileStream.LinkToFile(..#DIR_fileName)
+	If status=1 {
+		While 'objFileStream.AtEnd {
+			Set input($i(input)) = objFileStream.ReadLine()
+		}
+	}
+ 	Quit status
+]]></Implementation>
+</Method>
+</Class>
+</Export>
