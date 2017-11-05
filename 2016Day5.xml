@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-05 23:26:36">
+<Class name="AOC2016.Day5">
+<TimeChanged>64592,83725.277646</TimeChanged>
+<TimeCreated>64585,715.357391</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	#Dim input as %String = "reyedfim"
+	#Dim password as %String = ""
+	#Dim hash, md5Hash, hex, hex1 as %String
+	#Dim i, j as %Integer
+	
+	Try {
+		For i = 1:1 {
+			Set hash = input_i
+			Set md5Hash = $System.Encryption.MD5Hash(hash)
+			Set hex=""
+			For j=1:1:$l(md5Hash) {
+				Set hex1 = $ZHex($Ascii(md5Hash,j))
+				If $L(hex1)=1 set hex1="0"_hex1
+				Set hex = hex _ hex1
+			}
+			if $E(hex,1,5)="00000" {
+				Set password = password _ $E(hex,6)
+				If $L(password)=8 Quit
+			}
+		}
+ 	} Catch {
+ 			Use 0 Write "Error : ",$ZE,!
+	}
+	Write "password = ",password,!
+	Quit
+]]></Implementation>
+</Method>
+
+<Method name="Part2">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	#Dim input as %String = "reyedfim"
+	#Dim password,display as %String = "        "
+	#Dim hash, md5Hash, hex, hex1 as %String
+	#Dim index, iHash as %Integer
+
+	Write $Char(27),"[?25l" //Hide the cursor for nicer output effect
+	Try {
+		For index = 1:1 {
+			Set hash = input_index
+			Set md5Hash = $System.Encryption.MD5Hash(hash)
+			Set hex=""
+			For iHash=1:1:$l(md5Hash) {
+				Set hex1 = $ZHex($A(md5Hash,iHash))
+				If $Length(hex1)=1 set hex1="0"_hex1
+				Set hex = hex _ hex1
+			}
+			if $E(hex,1,5)="00000" {
+				If ($A(hex,6)<$A("0"))!($A(hex,6)>$A("7")) Continue
+				If $E(password,$E(hex,6)+1)=" " {
+					Set $E(password,$E(hex,6)+1) = $E(hex,7)
+					Set $E(display,$E(hex,6)+1) = $E(hex,7)
+				}
+				If password'[" " Quit  //found complete password
+			} else {  //wrong hash, but we want to use it in our display to rotate digits that are not yet found
+				If ($A(hex,6)'<$A("0"))&($A(hex,6)'>$A("7")) {
+					If $E(password,$E(hex,6)+1)=" " Set $E(display,$E(hex,6)+1) = $E(hex,7)
+				}
+			}
+			If index#1000=0 Write $Char(13),display," "  //to display a nice cinematic decrypting animation
+		}
+ 	} Catch {
+ 			Use 0 Write "Error : ",$ZError,!
+	}
+	Write $Char(27),"[?25h"  //turn cursor on again
+	Write !,"password = ",password,!
+	Quit
+]]></Implementation>
+</Method>
+</Class>
+</Export>
