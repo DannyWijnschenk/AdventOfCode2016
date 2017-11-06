@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-06 18:47:18">
+<Class name="AOC2016.Day6">
+<Super>AOC2016.Utils</Super>
+<TimeChanged>64593,67610.386897</TimeChanged>
+<TimeCreated>64585,3602.688297</TimeCreated>
+
+<Method name="Run">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day6.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#dim message, input as %String
+	#dim iInput, iLetter, count, position as %Integer
+	#dim firstMessage, secondMessage as %String
+	#dim leastLetter, commonLetter, letter as %Char
+	#dim leastCount, commonCount as %Integer
+	
+	Try {
+		Do ..Input(file, .input)
+		//count all input letters in each column
+		For iInput=1:1:input {
+			Set message=$Translate(input(iInput)," ")
+			For iLetter=1:1:$Length(message) {
+				Set letter = $Extract(message,iLetter)
+				Set count(iLetter, letter)=$Increment(count(iLetter,letter))
+			}
+		}
+		//for each column, get the most common and least common letter and add to the message
+		Set (firstMessage, secondMessage) = ""
+		Set position = "" For {
+			Set position = $Order(count(position)) If position = "" Quit
+			Set (commonLetter, commonCount, leastLetter, leastCount) = ""
+			Set letter="" For {
+				Set letter=$Order(count(position,letter)) If letter="" Quit
+				If (count(position,letter)>commonCount)!(commonCount="") {
+					Set commonLetter = letter
+					Set commonCount = count(position,letter)
+				}
+				If (count(position,letter)<leastCount)!(leastCount="") {
+					Set leastLetter = letter
+					Set leastCount = count(position,letter)
+				}
+			}
+			Set firstMessage = firstMessage_commonLetter
+			Set secondMessage = secondMessage_leastLetter
+		}
+	} Catch {
+		Write "Error : ",$ZE,!
+	}
+	Write "Message 1 : ",firstMessage,!
+	Write "        2 : ",secondMessage,!
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="AOC2016.Utils">
+<TimeChanged>64591,72415.909105</TimeChanged>
+<TimeCreated>64585,293.678464</TimeCreated>
+
+<Parameter name="DIR">
+<Default>J:\Winfo\AOC\</Default>
+</Parameter>
+
+<Method name="Input">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[fileName:%String,&input:%String]]></FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim objFileStream As %Stream.FileCharacter
+	#Dim status as %Boolean = 1
+	Set input = 0
+
+	Set objFileStream = ##class(%Stream.FileCharacter).%New()
+	Set status = objFileStream.LinkToFile(..#DIR_fileName)
+	If status=1 {
+		While 'objFileStream.AtEnd {
+			Set input($i(input)) = objFileStream.ReadLine()
+		}
+	}
+ 	Quit status
+]]></Implementation>
+</Method>
+</Class>
+</Export>
