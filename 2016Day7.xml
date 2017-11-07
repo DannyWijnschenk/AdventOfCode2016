@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-07 20:35:27">
+<Class name="AOC2016.Day7">
+<Super>AOC2016.Utils</Super>
+<TimeChanged>64594,73884.104152</TimeChanged>
+<TimeCreated>64585,4804.085193</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day7.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim input, ipAddress, part as %String
+	#Dim iInput, iIp as %integer
+	#Dim tlsCount as %Integer = 0  //counter of TLS compatible addresses
+	#Dim okTls as %Boolean
+	Try {
+		Do ..Input(file, .input)
+		For iInput=1:1:input {
+			Set ipAddress=input(iInput)
+			Set part=""
+			Set okTls = ""
+			For iIp=1:1:$Length(ipAddress) {
+				If $E(ipAddress,iIp)="[" {
+					If part'="" Do ..CheckTLS(part,0,.okTls)  ;0=part outside bracket
+					Set part=""
+				} elseIf $E(ipAddress,iIp)="]" {
+					If part'="" Do ..CheckTLS(part,1,.okTls)  ;1=part within bracket
+					Set part=""
+				} else {
+					set part=part_$E(ipAddress,iIp)
+				}
+				If okTls = 0 Quit  //cannot get true anymore
+			}
+			If part'="", okTls'=0 Do ..CheckTLS(part,0,.okTls)  ;check the remainder which is always outside bracket
+			If okTls = 1 set tlsCount=tlsCount+1
+		}
+	} Catch {
+		Write "Error : ",$ZError,!
+	}
+	Write "TLS : ",tlsCount,!
+]]></Implementation>
+</Method>
+
+<Method name="CheckTLS">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[part:%String,inBracket:%Boolean,&ok:%Char]]></FormalSpec>
+<Implementation><![CDATA[
+	#dim fourSequence as %String = ""
+	#dim sequence as %Integer = 0
+	#dim iPart as %Integer
+	//Check if part of address has any ABBA sequences
+	For iPart=4:1:$Length(part) {
+		Set fourSequence=$E(part,iPart-3,iPart)  ;last 4 characters
+		//check for ABBA
+		If ($E(fourSequence,1,2)=$Reverse($E(fourSequence,3,4))) & ($E(fourSequence,1)'=$E(fourSequence,2)) {
+			Set sequence=1
+			Quit
+		}
+	}
+	If sequence & inBracket {
+		Set ok = 0  //any ABBA within brackets makes the address not support TLS
+	} elseIf sequence & 'inBracket {
+		If ok'=0 Set ok = 1  //a ABBA outside brackets makes the address support TLS if no ABBA's were found within brackets (ok is initialized as "")
+	}
+]]></Implementation>
+</Method>
+
+<Method name="Part2">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day7.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim input, ipAddress, part, ABA, BAB, sequence, reverse as %String
+	#Dim iInput, iIp as %integer
+	#Dim sslCount as %Integer = 0  //counter of SSL compatible addresses
+	#Dim ok as %Boolean
+
+	Try {
+		Do ..Input(file, .input)
+		For iInput=1:1:input {
+			Set ipAddress=input(iInput)
+			Set part=""
+			Set ok = 0
+			Kill ABA,BAB
+			For iIp=1:1:$L(ipAddress) {
+				If $E(ipAddress,iIp)="[" {
+					If part'="" Do ..CheckSSL(part,.ABA)
+					Set part=""
+				} elseIf $E(ipAddress,iIp)="]" {
+					If part'="" Do ..CheckSSL(part,.BAB)
+					Set part=""
+				} else {
+					set part=part_$E(ipAddress,iIp)
+				}
+			}
+			If part'="" Do ..CheckSSL(part,.ABA)
+			Set ok = 0
+			//any ABA sequence with existing BAB sequence gives a SSL
+			Set sequence="" For {
+				Set sequence=$Order(ABA(sequence)) If sequence="" Quit
+				set reverse=$E(sequence,2)_$E(sequence,1)_$E(sequence,2)
+				If $Data(BAB(reverse)) set ok =1
+			}
+			//any BAB sequence with existing ABA sequence gives a SSL
+			Set sequence="" For {
+				Set sequence=$Order(BAB(sequence)) If sequence="" Quit
+				set reverse=$E(sequence,2)_$E(sequence,1)_$E(sequence,2)
+				If $Data(ABA(reverse)) set ok =1
+			}
+			If ok Set sslCount=sslCount+1
+		}
+	} Catch {
+		Write "Error : ",$ZError,!
+	}
+	Write "SSL : ",sslCount,!
+]]></Implementation>
+</Method>
+
+<Method name="CheckSSL">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[part:%String,&XYX:%String]]></FormalSpec>
+<Implementation><![CDATA[
+	#Dim threeSequence as %String = ""
+	#Dim sequence as %Integer = 0
+	#Dim iPart as %Integer
+	//check for any XYX sequence
+	For iPart=1:1:$Length(part) {
+		Set threeSequence=$E(threeSequence_$E(part,iPart),*-2,*)
+		If $Length(threeSequence)=3 {
+			If ($E(threeSequence,1)=$E(threeSequence,3)) & ($E(threeSequence,1)'=$E(threeSequence,2)) {
+				Set XYX(threeSequence)=""
+			}
+		}
+	}
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="AOC2016.Utils">
+<TimeChanged>64591,72415.909105</TimeChanged>
+<TimeCreated>64585,293.678464</TimeCreated>
+
+<Parameter name="DIR">
+<Default>J:\Winfo\AOC\</Default>
+</Parameter>
+
+<Method name="Input">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[fileName:%String,&input:%String]]></FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim objFileStream As %Stream.FileCharacter
+	#Dim status as %Boolean = 1
+	Set input = 0
+
+	Set objFileStream = ##class(%Stream.FileCharacter).%New()
+	Set status = objFileStream.LinkToFile(..#DIR_fileName)
+	If status=1 {
+		While 'objFileStream.AtEnd {
+			Set input($i(input)) = objFileStream.ReadLine()
+		}
+	}
+ 	Quit status
+]]></Implementation>
+</Method>
+</Class>
+</Export>
