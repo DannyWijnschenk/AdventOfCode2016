@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-08 19:59:51">
+<Class name="AOC2016.Day8">
+<Super>AOC2016.Utils</Super>
+<TimeChanged>64595,71967.021015</TimeChanged>
+<TimeCreated>64585,51966.091947</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day8.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim input, instruction, command as %String
+	#Dim param1, param2 as %Integer
+	#Dim iInput, x, y as %Integer
+	#Dim screen, screenCopy as %String
+	#Dim maxX as %Integer = 50
+	#Dim maxY as %Integer = 6
+	#dim count as %Integer = 0
+	Try {
+		//Initialize screen display
+		For x = 0:1:maxX-1 {
+			For y = 0:1:maxY-1 {
+				Set screen(x,y) = " "
+			}
+		}
+		Do ..Input(file, .input)
+		For iInput=1:1:input {
+			Set instruction = $ZStrip(input(iInput),"<>W")
+			Set command = $Piece(instruction," ",1)
+			If command="rect" {
+				//Draw square in upper left corner
+				Set param1=$Piece($Piece(instruction," ",2),"x",1)
+				Set param2=$Piece($Piece(instruction," ",2),"x",2)
+				For x=0:1:param1-1 {
+					For y=0:1:param2-1 {
+						Set screen(x,y)="#"
+					}
+				}			
+			} else {
+				Set command = $Piece($Piece(instruction," ",1,3),"=",1)
+				Set param1 = $Piece($Piece(instruction," ",3),"=",2)
+				Set param2 = $Piece(instruction," ",5)
+				//rotate pixels down
+				If command = "rotate column x" {
+					Merge screenCopy=screen(param1)
+					For y=0:1:maxY-1 {	
+						Set screen(param1,(y+param2)#maxY) = screenCopy(y)
+					}
+					//rotate pixels right
+				} elseIf command = "rotate row y" {
+					Set screenCopy="" For x=0:1:maxX-1 { set screenCopy=screenCopy_screen(x,param1) }
+					For x=0:1:maxX-1 {
+						Set screen((x+param2)#maxX,param1) = $E(screenCopy,x+1)
+					}
+				}
+			}
+			//Display screen for every step
+			Hang .1  //for some animation effect
+			Write #  //clear the screen
+			For y=0:1:maxY-1 {
+				For x=0:1:maxX-1 {
+					Write screen(x,y)
+				}
+				Write !
+			}
+		}
+		//Count leds in display
+		For y=0:1:maxY-1 {
+			For x=0:1:maxX-1 {
+				If screen(x,y)="#" Set count=count+1
+			}
+		}
+	} Catch {
+		Write "Error : ",$ZE,!
+	}
+	Write "Count : ",count,!
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="AOC2016.Utils">
+<TimeChanged>64591,72415.909105</TimeChanged>
+<TimeCreated>64585,293.678464</TimeCreated>
+
+<Parameter name="DIR">
+<Default>J:\Winfo\AOC\</Default>
+</Parameter>
+
+<Method name="Input">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[fileName:%String,&input:%String]]></FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim objFileStream As %Stream.FileCharacter
+	#Dim status as %Boolean = 1
+	Set input = 0
+
+	Set objFileStream = ##class(%Stream.FileCharacter).%New()
+	Set status = objFileStream.LinkToFile(..#DIR_fileName)
+	If status=1 {
+		While 'objFileStream.AtEnd {
+			Set input($i(input)) = objFileStream.ReadLine()
+		}
+	}
+ 	Quit status
+]]></Implementation>
+</Method>
+</Class>
+</Export>
