@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-10 19:45:43">
+<Class name="AOC2016.Day9">
+<Super>AOC2016.Utils</Super>
+<TimeChanged>64596,62450.881621</TimeChanged>
+<TimeCreated>64585,53930.452714</TimeCreated>
+
+<Method name="Part">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day9.txt",version:%Integer=1</FormalSpec>
+<Implementation><![CDATA[
+	#Dim input as %String
+	#Dim iInput as %Integer
+	#Dim totalLength as %Integer = 0
+	Try {
+		Do ..Input(file, .input)
+		For iInput=1:1:input {
+			Set totalLength=totalLength+..Decompress(input(iInput), version)
+		}
+	} Catch {
+		Write "Error : ",$ZError,!
+	}
+	Write "Total length : ",totalLength,!
+]]></Implementation>
+</Method>
+
+<Method name="Decompress">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>line,version:%Integer=1</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	#Dim totalLength as %Integer = 0
+	#Dim marker as %String
+	#Dim length, times, firstPos, lastPos as %Integer
+	For  {
+		If line="" Quit
+		Set firstPos=$Locate(line,"\(\d*x\d*\)",,lastPos,marker)
+		If firstPos>0 {
+			set totalLength=totalLength+firstPos-1
+			set length=+$E(marker,2,*)
+			set times=+$Piece(marker,"x",2)
+			Set line=$Extract(line,lastPos,*)
+			Set totalLength=totalLength+(times*$Select(version=1:length,1:..Decompress($Extract(line,1,length),version)))
+			Set line=$Extract(line,length+1,*)
+		} else {
+			set totalLength=totalLength+$length(line)
+			set line = ""
+		}
+	}		
+	Quit totalLength
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="AOC2016.Utils">
+<TimeChanged>64591,72415.909105</TimeChanged>
+<TimeCreated>64585,293.678464</TimeCreated>
+
+<Parameter name="DIR">
+<Default>J:\Winfo\AOC\</Default>
+</Parameter>
+
+<Method name="Input">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[fileName:%String,&input:%String]]></FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim objFileStream As %Stream.FileCharacter
+	#Dim status as %Boolean = 1
+	Set input = 0
+
+	Set objFileStream = ##class(%Stream.FileCharacter).%New()
+	Set status = objFileStream.LinkToFile(..#DIR_fileName)
+	If status=1 {
+		While 'objFileStream.AtEnd {
+			Set input($i(input)) = objFileStream.ReadLine()
+		}
+	}
+ 	Quit status
+]]></Implementation>
+</Method>
+</Class>
+</Export>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-10 19:43:45">
+<Class name="AOC2016.Day10">
+<Super>AOC2016.Utils</Super>
+<TimeChanged>64597,71015.772442</TimeChanged>
+<TimeCreated>64586,83731.604057</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day10.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim input, instruction, content as %String
+	#Dim iInput,fromBot, value as %Integer
+	
+	Try {
+		Do ..Input(file, .input)
+		For {  //repeat until all instructions are executed
+			If $Order(input(""))="" Quit  //no more instructions
+			Set iInput = ""
+			For {
+				Set iInput = $Order(input(iInput)) If iInput="" Quit
+				Set instruction = input(iInput)
+				If $Piece(instruction," ",1)="value" {
+					//give microchip to bot
+					Do ..GiveToBot("bot",$Piece(instruction," ",6),$Piece(instruction," ",2),.content)
+					Kill input(iInput)
+				} else {
+					//give hi and low microchip from bot to other bots or output
+					Set fromBot = $Piece(instruction," ",2)
+					Set value = $Order(content("bot",fromBot,"")) If value="" Continue
+					Set value = $Order(content("bot",fromBot,value)) If value="" Continue  //bot has not both microchips to give
+					Do ..GiveFromBot(fromBot,$P(instruction," ",6),$Piece(instruction," ",7),$Piece(instruction," ",11),$Piece(instruction," ",12),.content)
+					Kill input(iInput)
+				}
+			}
+		}
+	} Catch {
+		Write "Error : ",$ZError,!
+	}
+	Write "bot : ",$Get(content("found")),!
+	Write "output 0,1,2 : ",$Order(content("output",0,""))*$Order(content("output",1,""))*$Order(content("output",2,"")),!
+]]></Implementation>
+</Method>
+
+<Method name="GiveToBot">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[type,bot,value,&content]]></FormalSpec>
+<Implementation><![CDATA[
+	set content(type,bot,value)=""
+	If type="bot",$Data(content("bot",bot,17))&$Data(content("bot",bot,61)) set content("found")=bot
+	Quit
+]]></Implementation>
+</Method>
+
+<Method name="GiveFromBot">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[fromBot,toWhatLow,toNumberLow,toWhatHi,toNumberHi,&content]]></FormalSpec>
+<Implementation><![CDATA[
+	#dim hi, low as %Integer
+	Set low=$Order(content("bot",fromBot,""))
+	Set hi=$Order(content("bot",fromBot,low))
+	Kill content("bot",fromBot)
+	Do ..GiveToBot(toWhatLow, toNumberLow, low, .content)
+	Do ..GiveToBot(toWhatHi, toNumberHi, hi, .content)
+]]></Implementation>
+</Method>
+</Class>
+</Export>
