@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-11 22:46:12">
+<Class name="AOC2016.Day11V2">
+<TimeChanged>64598,81963.53182</TimeChanged>
+<TimeCreated>64598,38920.404138</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>%maxpath=40</FormalSpec>
+<Implementation><![CDATA[
+	#Dim F as %String
+	;Set F="12131"
+	;Set F="11123232323"
+	Set F="111232323231111"  //hold the floor of each item : elevator, generator1, microchip1, generator2, microchip2, ...
+	kill %state  //will hold all the states of the floors we have examined, with the minimum path length to get there from scratch
+	Do ..Recursive(F,"")
+	w !,"%maxpath : ",%maxpath
+]]></Implementation>
+</Method>
+
+<Method name="Recursive">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>F,path</FormalSpec>
+<Implementation><![CDATA[
+	#Dim done as %Boolean = 0
+	#Dim copyF, copyPath, items as %String
+	#Dim elevatorFloor, iItem, move, i, j as %Integer
+	#Dim inElevator as %String = ""  //hold items that have been moved, to avoid similar moves
+
+	Set copyF = F
+	Set copyPath=path
+	Set elevatorFloor=$Extract(F,1)
+	Set items=""
+	For iItem=2:1:$Length(F) {
+		If $E(F,iItem)=elevatorFloor set items=items_$lb(iItem)
+	}
+	For move=1,-1 {
+		For i=1:1:$LL(items) {
+			For j=i:1:$LL(items) {
+				Set F = copyF
+				Set path = copyPath
+				If ..inElevator($List(items,i),$List(items,j),elevatorFloor,move,F,.inElevator) Continue
+				If ..TryMove($List(items,i),$List(items,j),elevatorFloor,move,.F,path) {
+					Set path=path_$lb($lb(F,..Score(F)))
+					If ($ll(path)>%maxpath)&(%maxpath'="") set done=1 quit
+					If ..Done(F) Set done = 2 Quit
+					Do ..Recursive(F,path)
+				}
+			}
+			If done Quit
+		}
+		If done Quit
+	}
+	If done,($ll(path)<%maxpath)!(%maxpath="") {
+		set %maxpath=$ll(path) 
+		f i=1:1:$ll(path) {
+			Do ..Output($list($list(path,i),1)) w !
+		}
+		w !,%maxpath,!
+	}
+	Quit done
+]]></Implementation>
+</Method>
+
+<Method name="inElevator">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[item1,item2,floor,move,F,&inElevator]]></FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim floor1, floor2 as %Integer
+	#Dim found as %Boolean = 0
+	Set floor1=$S(item1#2:$E(F,item1-1),1:$E(F,item1+1))
+	Set floor2=$S(item2#2:$E(F,item2-1),1:$E(F,item2+1))
+	If item1=item2 { set item2="", floor2="" }
+	If $ListFind(inElevator,$lb(item1#2,item2#2,floor,move,floor1,floor2)) {
+		set found=1
+	} else {
+		set inElevator=inElevator_$lb($lb(item1#2,item2#2,floor,move,floor1,floor2))
+	}
+	Quit found
+]]></Implementation>
+</Method>
+
+<Method name="TryMove">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[item1,item2,floor,move,&F,path]]></FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim tryF as %String
+	If ((floor+move)>4)!((floor+move)<1) Quit 0  //If floor not within 1..4 range
+	If (item1#2)'=(item2#2),item1'=$S(item2#2:item2-1,1:item2+1) Quit 0  //if not same items (both micochip or both generator) and not same type of microchip and generator : invalid
+	Set tryF=F
+	Set $E(tryF,1)=floor+move  //move elevator
+	Set $E(tryF,item1)=floor+move  //move first item
+	If item1'=item2 Set $E(tryF,item2)=floor+move  //move second item if any
+	If ..ValidF(tryF,path,floor,floor+move) Set F=tryF Quit 1  //if rest of the start and end floor is valid : ok
+	Quit 0
+]]></Implementation>
+</Method>
+
+<Method name="ValidF">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>F,path,floor1,floor2</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim F2 as %String
+	#Dim error as %Boolean = 0
+	#Dim floor, iItem, itemG, itemM as %Integer
+
+	Set F2=..CompressState(F)
+	If $Data(%state(F2)),%state(F2)<$ll(path) Quit 0
+	For floor=1:1:4 set floor(floor)=""
+	For iItem=2:2:$Length(F) {
+		Set itemG=$E(F,iItem)
+		Set itemM=$E(F,iItem+1)
+		If floor(itemG)["M",floor(itemG)'["G" set error=1 quit  ;there is already an unprotected microchip, cannot stand G
+		If itemG'=itemM,floor(itemM)["G" set error=1 quit  ;this unprotected microchip can not be put on a floor with a G
+		Set floor(itemG)=floor(itemG)_"G"
+		Set floor(itemM)=floor(itemM)_"M"
+	}
+	If 'error If $LL(path)>8 If ..Score(F)<$List($List(path,$ll(path)-8),2) set error=1
+	If 'error {
+		Set F2=..CompressState(F)
+		set %state(F2)=$ll(path)
+	}
+	Quit 'error
+]]></Implementation>
+</Method>
+
+<Method name="CompressState">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>F</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	#Dim iItem, iItem1, iItem2 as %Integer
+	#Dim F2, states as %String
+
+	For iItem=2:2:$Length(F) {
+		set states($E(F,iItem),$E(F,iItem+1))=$Get(states($E(F,iItem),$E(F,iItem+1)))+1
+	}
+	Set F2=$E(F,1)
+	Set iItem1="" For {
+		Set iItem1=$Order(states(iItem1)) If iItem1="" Quit
+		Set iItem2="" For {
+			Set iItem2=$Order(states(iItem1,iItem2)) If iItem2="" Quit
+			Set F2=F2_iItem1_","_iItem2_":"_states(iItem1,iItem2)_"."
+		}
+	}
+	Quit F2
+]]></Implementation>
+</Method>
+
+<Method name="Score">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>F</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	#Dim score as %Integer = 0
+	#Dim iItem as %Integer
+	For iItem=2:1:$length(F) {
+		set score=score+($E(F,iItem)*10)
+	}
+	Quit score
+]]></Implementation>
+</Method>
+
+<Method name="Done">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>F</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[	Quit ($Translate(F,4)="")
+]]></Implementation>
+</Method>
+
+<Method name="Output">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>F</FormalSpec>
+<Implementation><![CDATA[
+	#Dim floor, iItem as %Integer
+	For floor=4:-1:1 {
+		Write "F",floor
+		For iItem=1:1:$length(F) {
+		   Write $Select($E(F,iItem)=floor:"#",1:" ")
+		}
+		Write !
+	}
+	Write !
+]]></Implementation>
+</Method>
+</Class>
+</Export>
