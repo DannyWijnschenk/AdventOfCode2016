@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-13 19:10:18">
+<Class name="AOC2016.Day12">
+<Super>AOC2016.Utils</Super>
+<TimeChanged>64599,41364.351223</TimeChanged>
+<TimeCreated>64592,39876.968207</TimeCreated>
+
+<Method name="Part">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day12.txt",part:%Integer=1</FormalSpec>
+<Implementation><![CDATA[
+	#Dim iInput as %Integer
+	#Dim input,instruction, param1, param2 as %String
+	#Dim var, register, line as %String
+	
+	For var="a","b","c","d" Set register(var)=0
+	If part'=1 set register("c")=1  ;for part2 set this to 1
+	
+ 	Try {
+		Do ..Input(file, .input)
+		Set iInput = 1
+		While iInput '> input {
+			Set line = input(iInput)
+			Set instruction=$Piece(line," ",1)
+			Set param1=$Piece(line," ",2)
+			Set param2=$Piece(line," ",3)
+			If instruction = "cpy" {
+				Set register(param2)=$Select($Data(register(param1)):register(param1),1:param1)
+			} elseIf instruction = "inc" {
+				Set register(param1) = register(param1) + 1
+			} elseIf instruction = "dec" {
+				Set register(param1) = register(param1) - 1
+			} elseIf instruction = "jnz" {
+				If $Select($Data(register(param1)):register(param1),1:param1)'=0 {
+					Set iInput = iInput + param2 -1  //-1 since every loop will do +1 anyway
+				}
+			}			
+			Set iInput = iInput + 1
+		}
+ 	} catch {
+	 	Write "Error : ",$ZError,!
+ 	}
+ 	Write "register a = ",register("a"),!
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="AOC2016.Utils">
+<TimeChanged>64591,72415.909105</TimeChanged>
+<TimeCreated>64585,293.678464</TimeCreated>
+
+<Parameter name="DIR">
+<Default>J:\Winfo\AOC\</Default>
+</Parameter>
+
+<Method name="Input">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[fileName:%String,&input:%String]]></FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim objFileStream As %Stream.FileCharacter
+	#Dim status as %Boolean = 1
+	Set input = 0
+
+	Set objFileStream = ##class(%Stream.FileCharacter).%New()
+	Set status = objFileStream.LinkToFile(..#DIR_fileName)
+	If status=1 {
+		While 'objFileStream.AtEnd {
+			Set input($i(input)) = objFileStream.ReadLine()
+		}
+	}
+ 	Quit status
+]]></Implementation>
+</Method>
+</Class>
+</Export>

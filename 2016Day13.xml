@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-13 19:09:27">
+<Class name="AOC2016.Day13">
+<TimeChanged>64600,68961.402422</TimeChanged>
+<TimeCreated>64592,42347.964327</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	#Dim path as %String = ""
+	#Dim posX as %Integer = 1
+	#Dim posY as %Integer = 1
+	Set %grid = ""
+	Set %maxPath = 150
+	Do ..Move(posX,posY,path)
+]]></Implementation>
+</Method>
+
+<Method name="Move">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>posX,posY,path</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim valid as %Boolean = 0
+	#Dim deltaX, deltaY as %Integer
+	#Dim move as %String
+	If $ListLength(path)'<%maxPath Quit 0
+	
+	For move="0,1","1,0","0,-1","-1,0" {
+		set deltaX=$P(move,",",1)
+		set deltaY=$P(move,",",2)
+		If $ListFind(path,$lb(posX+deltaX,posY+deltaY)) Continue  ;been here already in this path
+		If ..ValidMove(posX+deltaX,posY+deltaY) {
+			If (posX+deltaX)=31,(posY+deltaY)=39 {
+				Set valid = 1
+				If $ListLength(path_$lb($lb(posX+deltaX,posY+deltaY)))<%maxPath {
+					Set %maxPath = $ListLength(path_$lb($lb(posX+deltaX,posY+deltaY)))
+					w !,%maxPath
+				}
+			} else {
+				Set valid = ..Move(posX+deltaX,posY+deltaY, path_$lb($lb(posX+deltaX,posY+deltaY)))
+			}
+		}
+	}
+	Quit valid
+]]></Implementation>
+</Method>
+
+<Method name="ValidMove">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>x,y</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim calc as %Integer
+	#Dim valid as %Boolean = 1
+	If (x<0)!(y<0) Quit 0
+	If $Get(%grid(x,y))'="" Quit %grid(x,y)
+	set calc=(x*x)+(3*x)+(2*x*y)+y+(y*y)+1358
+	If $BitCount($Factor(calc),1)#2 set valid = 0
+	Set %grid(x,y)=valid
+	Quit valid
+]]></Implementation>
+</Method>
+
+<Method name="Part2">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	#Dim count as %Integer = 0
+	set %grid=""
+	For %X=0:1:50 {
+		For %Y=0:1:50 {
+			Set %maxPath=50
+			Set %Stop=0
+			If ..ValidMove(%X,%Y),..Move2(1,1,"") s count=count+1 w count," "
+		}
+	}
+]]></Implementation>
+</Method>
+
+<Method name="Move2">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>posX,posY,path</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	#Dim valid as %Boolean = 0
+	#Dim move as %String
+	If $LL(path)'<%maxPath Quit 0
+	
+	For move="0,1","1,0","0,-1","-1,0" {
+		set dX=$P(move,",",1)
+		set dY=$P(move,",",2)
+		If $ListFind(path,$lb(posX+dX,posY+dY)) Continue  ;been here already in this path
+		If ..ValidMove(posX+dX,posY+dY) {
+			If (posX+dX)=%X,(posY+dY)=%Y {
+				Set valid = 1, %Stop=1
+				If $ListLength(path_$lb($lb(posX+dX,posY+dY)))<%maxPath {
+					Set %maxPath = $ListLength(path_$lb($lb(posX+dX,posY+dY)))
+					;w !,%maxPath
+				}
+			} else {
+				Set valid = ..Move2(posX+dX,posY+dY, path_$lb($lb(posX+dX,posY+dY)))
+			}
+		}
+		If %Stop Quit
+	}
+	Quit valid
+]]></Implementation>
+</Method>
+</Class>
+</Export>
