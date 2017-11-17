@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1 (Build 792U)" ts="2017-11-17 21:41:19">
+<Class name="AOC2016.Day17">
+<TimeChanged>64604,77818.931238</TimeChanged>
+<TimeCreated>64597,43856.281533</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	#Dim input="rrrbmfta"  ;"ihgpwlah"
+	#Dim smallestPath, longestPath, x, y, startX, startY as %Integer
+	#Dim grid as Array of %String
+	#Dim path, bestPath as %String
+	#Dim room as %Char
+
+	Set grid(1)="#########"
+	Set grid(2)="#S| | | #"
+	Set grid(3)="#-#-#-#-#"
+	Set grid(4)="# | | | #"
+	Set grid(5)="#-#-#-#-#"
+	Set grid(6)="# | | | #"
+	Set grid(7)="#-#-#-#-#"
+	Set grid(8)="# | | |  "
+	Set grid(9)="####### V"
+
+	Set smallestPath=50,longestPath=0
+	For y=1:1:9 {
+		For x=1:1:$l(grid(y)) {
+			Set room = $E(grid(y),x)
+			If room="S" Set startX=x,startY=y,room=""
+			Set grid(x,y) = room
+		}
+	}
+	Set path="",x=startX,y=startY
+	Do ..Move(x,y,.path,.grid,input,.smallestPath,.longestPath,.bestPath)
+	write !,"path : ",bestPath
+]]></Implementation>
+</Method>
+
+<Method name="Move">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>x,y,path,grid,input,smallestPath,longestPath,bestPath</FormalSpec>
+<Implementation><![CDATA[
+	#Dim finish as %Boolean = 0
+	#Dim hash as %String
+	#Dim door, stepX, stepY as %Integer
+
+	Set hash = ..Hash(input_path)
+	For door=1:1:4 {
+		If $Case($E(hash,door),"b":1,"c":1,"d":1,"e":1,"f":1,:0) {  //only b, c, d & e are valid doors
+			//3: left, 4:right
+			set stepX=$Case(door,3:-1,4:+1,:0)
+			//1: up, 2: don
+			set stepY=$Case(door,1:-1,2:+1,:0)
+			If ($Get(grid(x+stepX,y+stepY))="|")!($Get(grid(x+stepX,y+stepY))="-") {
+				If (x+(stepX*2))=8,(y+(stepY*2))=8 {
+					Set finish=1
+					;part1:
+					If $Length(path)<smallestPath Set smallestPath=$Length(path)+1,bestPath=path_$Extract("UDLR",door)
+					;part2:
+					If $Length(path)>longestPath Set longestPath=$Length(path)+1 Write !,longestPath
+					Quit
+				}
+				Do ..Move(x+(stepX*2),y+(stepY*2),path_$Extract("UDLR",door),.grid,input,.smallestPath,.longestPath, .bestPath)
+			}
+		}
+	}
+	Quit finish
+]]></Implementation>
+</Method>
+
+<Method name="Hash">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>s</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	#Dim md5Hash, hex, hex1 as %String
+	#Dim iHash as %Integer
+	set md5Hash=$system.Encryption.MD5Hash(s)
+	Set hex=""
+	For iHash=1:1:$l(md5Hash) {
+		Set hex1 = $ZHex($Ascii(md5Hash,iHash))
+		If $Length(hex1)=1 set hex1="0"_hex1
+		Set hex = hex _ hex1
+	}
+	Quit $zconvert(hex,"l")
+]]></Implementation>
+</Method>
+</Class>
+</Export>

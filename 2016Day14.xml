@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1 (Build 792U)" ts="2017-11-17 21:43:38">
+<Class name="AOC2016.Day14">
+<TimeChanged>64601,42749.525857</TimeChanged>
+<TimeCreated>64594,40054.934262</TimeCreated>
+
+<Method name="Part">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>part:%Integer=1</FormalSpec>
+<Implementation><![CDATA[
+	#Dim salt as %String = "cuanljph"
+	#Dim index, nextIndex as %Integer
+	#Dim hash, hash2, hashes, triplet, fivelet as %String
+	#Dim countKey as %Integer = 0
+	#Dim okKey as %Boolean
+	Set hashes = $Select(part=1:1, 1:2017)
+	Kill %hash
+ 	Try {
+	 	set a = $zh
+		For index = 0:1 {
+			Set hash = ..GetMD5(salt_index,hashes)
+			If $Locate(hash,"(.)\1\1",,,triplet) {  //regex: 3 the same characters
+				Set okKey = 0
+				Set fivelet=$E(triplet_triplet,1,5)
+				For nextIndex=1:1:1000 {
+					Set hash2 = ..GetMD5(salt_(index+nextIndex),hashes)
+					If $Find(hash2,fivelet) {
+						Set okKey = 1
+						Quit
+					}
+				}
+				If okKey {
+					Set countKey=countKey+1
+					write countKey,"   ",index," : ",hash,!
+					If countKey = 64 Quit
+				}
+			}
+		}
+		Write "Index = ",index,!
+		Write "in ",$zh-a,!
+ 	} Catch {
+ 		Write "Error : ",$ZError,!
+ 	}
+]]></Implementation>
+</Method>
+
+<Method name="GetMD5">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>s,hashes</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	#Dim hash as %String
+	#Dim iHash as %Integer
+
+	If $data(%hash(s)) quit %hash(s)
+	Set hash = s
+	For iHash=1:1:hashes {
+		set hash = ..StrToHex($system.Encryption.MD5Hash(hash))
+	}
+	set %hash(s)=hash
+	quit hash
+]]></Implementation>
+</Method>
+
+<Method name="StrToHex">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>str:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	#Dim hex as %String = ""
+	#Dim hex1 as %String
+	#Dim iStr as %Integer
+	For iStr=1:1:$Length(str) {
+		Set hex1 = $ZHex($Ascii(str,iStr))
+		If $Length(hex1)=1 set hex1="0"_hex1
+		Set hex = hex _ hex1
+	}
+	Quit $ZConvert(hex,"l")
+]]></Implementation>
+</Method>
+</Class>
+</Export>

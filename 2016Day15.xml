@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1 (Build 792U)" ts="2017-11-17 21:43:58">
+<Class name="AOC2016.Day15">
+<TimeChanged>64602,78230.108198</TimeChanged>
+<TimeCreated>64596,78872.757416</TimeCreated>
+
+<Method name="Part">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>part:%Integer=1</FormalSpec>
+<Implementation><![CDATA[
+	#Dim disc, time as Array of %Integer
+	#Dim found as %Boolean
+	#Dim slot as %Integer
+	
+	Set disc(1)=13, time(1)=10
+	Set disc(2)=17, time(2)=15
+	Set disc(3)=19, time(3)=17
+	Set disc(4)=7,  time(4)=1
+	Set disc(5)=5,  time(5)=0
+	Set disc(6)=3,  time(6)=1
+	If part=2 Set disc(7)=11, time(7)=0
+	
+	For time=0:1 {
+		Set found=1
+		Set disc="" For  {
+			Set disc=$Order(disc(disc)) If disc="" Quit
+			If (time(disc)+disc+time)#disc(disc) Set found=0 Quit
+		}
+		If found Write time,! Quit
+	}
+]]></Implementation>
+</Method>
+</Class>
+</Export>

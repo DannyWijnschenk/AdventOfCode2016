@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-16 18:19:24">
+<Class name="AOC2016.Day16">
+<TimeChanged>64603,64460.875039</TimeChanged>
+<TimeCreated>64596,79668.423541</TimeCreated>
+
+<Method name="Part2">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	#Dim state as %String = "01110110101001000"
+	#Dim disk as %Integer = 35651584 ;272
+	#Dim dragon as Array of %String
+	#Dim iDragon as %Integer
+
+	set dragon($i(dragon)) = state
+	For {
+		Do ..Dragon(.dragon)
+		If ..Length(.dragon)>disk Quit
+	}
+	Do ..Cut(.dragon,disk)
+	For {
+		Do ..Checksum(.dragon)
+		If ..Length(.dragon)#2'=0 Quit
+	}
+	Set iDragon="" For {
+		set iDragon=$O(dragon(iDragon)) If iDragon="" Quit
+		Write dragon(iDragon)
+	}
+	Quit
+]]></Implementation>
+</Method>
+
+<Method name="Dragon">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&dragon]]></FormalSpec>
+<Implementation><![CDATA[
+	#Dim middle as %Integer
+	#Dim iDragon as %Integer
+
+	set middle = $order(dragon(""),-1)
+	set dragon($i(dragon))="0"  //first append 0
+	//than append reverse of previous dragon (and negate digits)
+	For iDragon=middle:-1:1 {
+		Set dragon($i(dragon)) = $TR($reverse(dragon(iDragon)),"10","01")
+	}
+	Quit
+]]></Implementation>
+</Method>
+
+<Method name="Cut">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&dragon,maxlen]]></FormalSpec>
+<Implementation><![CDATA[
+	#Dim iDragon, length as %Integer = 0
+	For iDragon=1:1:dragon {
+		Set length=length+$Length(dragon(iDragon))
+		If length > maxlen set dragon(iDragon)=$E(dragon(iDragon),1,*-(length-maxlen)) Quit
+	}
+	For iDragon=iDragon+1:1:dragon Kill dragon(iDragon)
+	set dragon=$order(dragon(""),-1)
+	Quit
+]]></Implementation>
+</Method>
+
+<Method name="Length">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>dragon</FormalSpec>
+<Implementation><![CDATA[
+	#Dim length as %Integer = 0
+	#Dim iDragon as %Integer = ""
+	For {
+		Set iDragon = $Order(dragon(iDragon)) if iDragon = "" Quit
+		Set length=length+$Length(dragon(iDragon))
+	}
+	Quit length
+]]></Implementation>
+</Method>
+
+<Method name="Checksum">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>str</FormalSpec>
+<Implementation><![CDATA[
+	#Dim rest as %String = ""
+	#Dim iStr as %Integer = ""
+	#Dim oldString as %String
+	#Dim pair as %Integer
+	
+	For {
+		Set iStr=$o(str(iStr)) if iStr="" Quit
+		Set oldString = str(iStr)
+		Set str(iStr)=""
+		For pair=1:2:$length(oldString) {
+			If (pair+1)>$length(oldString) set str(iStr+1)=$e(oldString,*)_$Get(str(iStr+1)) Continue
+			If $E(oldString,pair)=$E(oldString,pair+1) {
+				set str(iStr)=str(iStr)_"1"
+			} else {
+				set str(iStr)=str(iStr)_"0"
+			}
+		}
+		If str(iStr)="" Kill str(iStr)
+	}
+	Quit
+]]></Implementation>
+</Method>
+</Class>
+</Export>
