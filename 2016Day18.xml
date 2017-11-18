@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1 (Build 792U)" ts="2017-11-18 20:37:05">
+<Class name="AOC2016.Day18">
+<TimeChanged>64605,71983.475437</TimeChanged>
+<TimeCreated>64600,70862.087033</TimeCreated>
+
+<Method name="Part">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>part:%Integer=1</FormalSpec>
+<Implementation><![CDATA[
+	#Dim row as %String = "^.^^^.^..^....^^....^^^^.^^.^...^^.^.^^.^^.^^..^.^...^.^..^.^^.^..^.....^^^.^.^^^..^^...^^^...^...^."
+	#Dim safe as %Integer = 0
+	#Dim iInput, iRow, iCol as %Integer
+	#Dim prevRow, Row as %String
+	#Dim newTile as %Char
+	#Dim maxRows as %Integer = $Select(part=1:40,1:400000)
+
+	//don't forget to count the safe tiles on first row
+	For iInput=1:1:$l(row) { If $Extract(row,iInput)="." set safe = safe + 1 }
+
+	For iRow=2:1:maxRows {
+		Set prevRow = row
+		Set row=""
+		For iCol=1:1:$Length(prevRow) {
+			Set newTile = $$TrapOrTile($S(iCol=1:".",1:"")_$E(prevRow,iCol-1,iCol+1)_$S(iCol=$length(prevRow):".",1:""))
+			Set row = row _ newTile
+			If newTile = "." set safe = safe + 1
+		}
+		If part = 1 Write row,!
+	}
+	Write "Safe tiles : ",safe,!
+	Quit
+	
+TrapOrTile(s) Quit $Case(s,"^^.":"^",".^^":"^","^..":"^","..^":"^",:".")
+]]></Implementation>
+</Method>
+</Class>
+</Export>
