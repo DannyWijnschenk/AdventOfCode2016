@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-20 23:18:39">
+<Class name="AOC2016.Day20">
+<Super>AOC2016.Utils</Super>
+<TimeChanged>64607,68942.298795</TimeChanged>
+<TimeCreated>64601,70072.781968</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day20.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#dim input as %String
+	#dim iInput, lowest, allowed as %Integer
+	#Dim from, to, ip as %String
+	#Dim sort as Array of %String
+	#Dim found as %Boolean
+			
+	Try {
+		Do ..Input(file, .input)
+		//Put all ip-ranges in array, sort by lowest
+		For iInput=1:1:input {
+			Set from=$P(input(iInput),"-",1)
+			Set to=$P(input(iInput),"-",2)
+			Set sort(from,to)=""
+		}
+		Set found=""  //lowest ip address in total array (first lowest)
+		Set lowest=0  //lowest ip address in array, move forward in loop outside range
+		Set from=""   //track position in sort array
+		Set allowed = 0  //total amount of ip's that are outside blacklist range
+		For {
+			Set from=$Order(sort(from)) If from="" Quit
+			If lowest<from {  //lowest so far is outside range : everything upto from not included is not blacklisted
+				If found="" Set found=lowest  //first lowest found ever
+				For ip=lowest:1:from-1 set allowed=allowed+1
+				set lowest=from
+			}
+			Set to = "" For {
+				Set to=$Order(sort(from,to)) If to="" Quit
+				If (lowest '< from) & (lowest '>to) {  //lowest outside range is always 1 bigger than to
+					Set lowest = to+1
+				}
+			}
+		}
+		W "lowest : ",found,!
+		W "allowed : ",allowed,!
+	} Catch {
+		Write "Error : ",$ZError,!
+	}
+]]></Implementation>
+</Method>
+</Class>
+</Export>
