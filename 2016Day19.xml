@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-21 23:10:59">
+<Class name="AOC2016.Day19">
+<TimeChanged>64608,83447.586448</TimeChanged>
+<TimeCreated>64600,72056.633811</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	#dim elves as %Integer = 3005290
+	#dim elve, count, elveNext as %Integer
+	
+	For elve=1:1:elves Set elves(elve)=1
+
+	Set count=elves
+	set elve=""
+	For {
+		Set elve=$Order(elves(elve))
+		If elve="" Set elve=$Order(elves(""))
+		Set elveNext=elve
+		For  {
+			Set elveNext=$Order(elves(elveNext))
+			If elveNext="" Set elveNext=$Order(elves(""))
+			If elveNext = elve Quit
+			set elves(elve)=elves(elve)+elves(elveNext)
+			kill elves(elveNext)
+			Set count=count-1
+			Quit
+		}
+		If count=1 Quit
+	}
+	Write "elve left : ",$Order(elves("")),!
+]]></Implementation>
+</Method>
+
+<Method name="Part2">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	#dim elves as %Integer = 3005290
+	#dim elve, count, elveNext, tries as %Integer
+
+	For elve=1:1:elves Set elves(elve)=1
+
+	Set count=elves
+	set elve=""
+	Set tries=$Select(count#2:(count-1)/2,1:(count/2))
+	Set elveNext=tries+1
+	For {
+		Set elve=$Order(elves(elve))
+		If elve="" Set elve=$Order(elves(""))
+		kill elves(elveNext)
+		Set elveNext=$Order(elves(elveNext))
+		If elveNext="" Set elveNext=$Order(elves(""))
+		If count#2 {
+			Set elveNext=$Order(elves(elveNext))
+			If elveNext="" Set elveNext=$Order(elves(""))
+		}
+		Set count=count-1
+		If count=1 Quit
+	}
+	Write "elve left : ",$Order(elves("")),!
+]]></Implementation>
+</Method>
+
+<Method name="Part2Wrong">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	#dim elves as %Integer = 10  ;3005290
+	For elve=1:1:elves Set elves(elve)=1
+
+	Set count=elves
+	set elve=""
+	For {
+		Set elve=$Order(elves(elve))
+		If elve="" Set elve=$Order(elves(""))
+		Set elveNext=elve
+		Set tries=$Select(count#2:(count-1)/2,1:(count/2))
+		For try=1:1:tries {
+			Set elveNext=$Order(elves(elveNext))
+			If elveNext="" Set elveNext=$Order(elves(""))
+		}
+		set elves(elve)=elves(elve)+elves(elveNext)
+		kill elves(elveNext)
+		Set count=count-1
+		;Write elve," takes ",elveNext,!
+		If count=1 Quit
+		if count#1000=0 write count," "
+	}
+	Write "elve left : ",$Order(elves("")),!
+]]></Implementation>
+</Method>
+
+<Method name="Part2WrongAgain">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	#dim elves as %Integer = 3005290
+	Set elvesStr=""
+	For elve=1:1:elves {
+		set row=elve\5000+1
+		set col=elve#5000
+		Set elvesStr(row)=$Get(elvesStr(row))_$Lb(elve)
+	}
+	set start=$zh
+	set zprev=$zh
+	Set count=elves
+	set col=0,row=1,elve=""
+	For {
+		Do Next(.elve,.row,.col)
+		Set tries=$Select(count#2:(count-1)/2,1:(count/2))
+		set takeRow=row,takeCol=col
+		Do Take(.takeRow,.takeCol,tries)
+		Set elvesStr(takeRow)=$List(elvesStr(takeRow),1,takeCol-1)_$List(elvesStr(takeRow),takeCol+1,*)
+		If elvesStr(takeRow)="" Kill elvesStr(takeRow)
+		Set count=count-1
+		;Write elve," takes ",elveNext,!
+		If count=1 Quit
+		if count#1000=0 write count,"(",($zh-zprev),") " set zprev=$zh
+	}
+	set row=$O(elvesStr(""))
+	Write !,"elve left : ",$list(elvesStr(row),1),!
+	write $zh-start,!
+	
+	Quit
+Next(elve,row,col)	;
+	Set col=col+1
+	If col>$ll(elvesStr(row)) {
+		set col=1
+		set row=$Order(elvesStr(row))
+		If row="" set row=$Order(elvesStr("")) set elve=1
+	}
+	Quit
+Take(row,col,tries)	;
+	While (col+tries)>$ll(elvesStr(row)) {
+		Set tries=tries-($ll(elvesStr(row))-col)-1
+		set row=$Order(elvesStr(row))
+		if row="" set row=$Order(elvesStr(""))
+		Set col=1  ;col-(col-$ll(elvesStr(row))
+	}
+	Set col=(col+tries)
+]]></Implementation>
+</Method>
+</Class>
+</Export>
