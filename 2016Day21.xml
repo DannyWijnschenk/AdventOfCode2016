@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-21 23:07:11">
+<Class name="AOC2016.Day21">
+<Super>AOC2016.Utils</Super>
+<TimeChanged>64608,71076.060123</TimeChanged>
+<TimeCreated>64604,78429.690505</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day21.txt",password="abcdefgh"</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	#Dim input, instruction as %String
+	#Dim iInput, X, Y, temp as %Integer
+	#Dim letter as %Char
+
+	Try {
+		Do ..Input(file, .input)
+		For iInput=1:1:input {
+			Set instruction = $Piece(input(iInput), " ",1,2)
+			If instruction="swap position" {
+				set X = $Piece(input(iInput)," ",3)+1
+				set Y = $Piece(input(iInput)," ",6)+1
+				Set temp = $Extract(password,X)
+				Set $Extract(password,X)=$Extract(password,Y)
+				Set $Extract(password,Y)=temp
+			} elseIf instruction="swap letter" {
+				set X = $Piece(input(iInput)," ",3)
+				set Y = $Piece(input(iInput)," ",6)
+				Set password=$Translate(password, X_Y, Y_X)
+			} elseIf instruction="move position" {
+				Set X = $Piece(input(iInput)," ",3)+1
+				Set Y = $Piece(input(iInput)," ",6)+1
+				Set letter=$E(password,X)
+				Set password=$E(password,1,X-1)_$E(password,X+1,*)
+				Set password=$E(password,1,Y-1)_letter_$E(password,Y,*)
+			} elseIf instruction="rotate based" {
+				Set letter = $Piece(input(iInput)," ",7)
+				Set X = $Find(password, letter)-1-1
+				Do ..RotateRight(.password, 1+X+$Select(X>3:1,1:0))				
+			} elseIf instruction="reverse positions" {
+				Set X = $Piece(input(iInput)," ",3)+1
+				Set Y = $Piece(input(iInput)," ",5)+1
+				Set password=$Extract(password,1,X-1)_$Reverse($Extract(password,X,Y))_$Extract(password,Y+1,*)
+			} elseIf instruction="rotate left" {
+				Set X = $Piece(input(iInput)," ",3)
+				Do ..RotateLeft(.password, X)
+			} elseIf instruction="rotate right" {
+				Set X = $Piece(input(iInput)," ",3)
+				Do ..RotateRight(.password, X)
+			}
+		}
+	} catch {
+		Write "Error : ",$ZError,!
+	}
+	Quit password
+]]></Implementation>
+</Method>
+
+<Method name="RotateRight">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&str:%String,X]]></FormalSpec>
+<Implementation><![CDATA[
+	Set X = X # $Length(str)
+	If X > 0 {
+		Set str = $E(str_str,$Length(str)+1-X,*-X)
+	}
+]]></Implementation>
+</Method>
+
+<Method name="RotateLeft">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&str:%String,X]]></FormalSpec>
+<Implementation><![CDATA[
+	Set X = X # $Length(str)
+	If X > 0 {
+		Set str = $E(str_str,1+X,$Length(str)+X)
+	}
+]]></Implementation>
+</Method>
+
+<Method name="Part2">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[	Do ..Recursive("")
+]]></Implementation>
+</Method>
+
+<Method name="Recursive">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>s</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	#Dim ok as %Boolean = 0
+	#Dim scrambled as %String
+	#Dim iLetter as %Integer
+	#Dim letter as %Char
+	
+	If $Length(s)=8 {
+		Set scrambled = ..Part1(,s)
+		If scrambled="fbgdceah" Write !,"found : ",s Set ok=1
+	} else {  //try all combinations by adding at each position one of the 8 letters
+		For iLetter=1:1:8 {
+			Set letter=$E("abcdefgh",iLetter)
+			If s'[letter {
+				Set ok = ..Recursive(s_letter)
+				If ok Quit
+			}
+		}
+	}
+	Quit ok
+]]></Implementation>
+</Method>
+</Class>
+</Export>
