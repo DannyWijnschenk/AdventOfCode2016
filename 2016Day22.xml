@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-22 23:14:22">
+<Class name="AOC2016.Day22">
+<Super>AOC2016.Utils</Super>
+<TimeChanged>64609,72355.387536</TimeChanged>
+<TimeCreated>64606,42389.629608</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day22.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim input, df, node, nodeA, nodeB as %String
+	#Dim iInput, viable as %Integer
+	#Dim nodes as Array of %String
+	
+	Try {
+		Do ..Input(file, .input)
+		For iInput=3:1:input {  //first two lines are df header
+			Set df=$ZStrip(input(iInput),"<=>W")
+			Set node=$Piece(df," ",1)
+			Set nodes(node)=$ListFromString($Piece(df," ",2,*)," ")
+		}
+		Set viable = 0
+		Set nodeA="" For  {
+			Set nodeA = $Order(nodes(nodeA)) If nodeA="" Quit
+			If +$List(nodes(nodeA),2)'=0 {  //A is not empty
+				Set nodeB="" For {
+					Set nodeB = $Order(nodes(nodeB)) If nodeB="" Quit
+					If nodeA'=nodeB {  //A and B can not be the same node
+						If +$List(nodes(nodeA),2) '> +$List(nodes(nodeB),3) {
+							set viable=viable+1
+						}
+					}
+				}
+			}
+		}
+		Write "Viable nodes : ",viable,!
+	} catch {
+		Write "Error : ",$ZError,!
+	}
+]]></Implementation>
+</Method>
+
+<Method name="Part2">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day22.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim input, df, node as %String
+	#Dim iInput, x, y, maxX, maxY, freeX, freeY, minPath, pathLength as %Integer
+	#Dim nodes as Array of %String
+	Kill %path
+	set %path=""
+	Try {
+		Set maxX=0
+		Set maxY=0
+		Set freeX=0
+		Set freeY=0
+		Do ..Input(file, .input)
+		For iInput=3:1:input {  //first two lines df header
+			Set df=$ZSTrip(input(iInput),"<=>W")
+			Set node=$Piece(df," ",1)
+			Set x = $Extract($Piece(node,"-",2),2,*)
+			Set y = $Extract($Piece(node,"-",3),2,*)
+			Set nodes(x,y)=$ListFromString($Piece(df," ",2,*)," ")
+			If +$List(nodes(x,y),2)=0 set freeX=x, freeY=y
+			If x>maxX Set maxX=x
+			If y>maxY Set maxY=y
+		}
+		Set minPath=""
+		Do ..Path(.nodes,freeX,freeY,maxX-1,0,"",.minPath)  //path from free to before G
+		Set pathLength=minPath+1+(5*(maxX-1))
+		Do ..Output(.nodes,maxX,maxY)
+		W !,"minimum path : ",pathLength,!
+	} catch {
+		Write "Error : ",$ZError,!
+	}
+]]></Implementation>
+</Method>
+
+<Method name="Path">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>nodes,x0,y0,x1,y1,path,minPath</FormalSpec>
+<Implementation><![CDATA[
+	#Dim xDelta, yDelta as %Integer
+	#Dim moves as %String
+	if (x0=x1) & (y0=y1) {
+		If ($LL(path)<minPath)!(minPath="") Set minPath = $LL(path) w !,minPath set %path=path
+	} elseIf (($ListLength(path)+..Distance(x0,y0,x1,y1))'<minPath)&(minPath'="") {
+		//to far from goal : quit
+	} else {
+		For moves="0,-1","0,1","1,0","-1,0" {
+			Set xDelta=$P(moves,",",1)
+			Set yDelta=$P(moves,",",2)
+			If '$Data(nodes(x0+xDelta,y0+yDelta)) Continue
+			If $List(nodes(x0+xDelta,y0+yDelta),1)>100 Continue
+			If $ListFind(path,$lb(x0+xDelta,y0+yDelta)) Continue
+			Do ..Path(.nodes,x0+xDelta,y0+yDelta,x1,y1,path_$lb($lb(x0+xDelta,y0+yDelta)),.minPath)
+		}
+	}
+]]></Implementation>
+</Method>
+
+<Method name="Distance">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>x0,y0,x1,y1</FormalSpec>
+<Implementation><![CDATA[	Quit $ZAbs(x1-x0)+$ZAbs(y1-y0)
+]]></Implementation>
+</Method>
+
+<Method name="Output">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&nodes,maxX,maxY]]></FormalSpec>
+<Implementation><![CDATA[
+	For y=0:1:maxY {
+		For x=0:1:maxX {
+			Write $Select(+$List(nodes(x,y),2)=0:"_",+$List(nodes(x,y),1)>100:"#",$Find(%path,$lb(x,y)):"o",1:".")
+		}
+		Write !
+	}
+]]></Implementation>
+</Method>
+</Class>
+</Export>
