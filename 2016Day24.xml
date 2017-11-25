@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-25 12:01:21">
+<Class name="AOC2016.Day24">
+<Super>AOC2016.Utils</Super>
+<TimeChanged>64611,71352.375358</TimeChanged>
+<TimeCreated>64608,37157.89763</TimeCreated>
+
+<Method name="Part1">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day24.txt"</FormalSpec>
+<Implementation><![CDATA[
+	#Dim input as %String
+	#Dim iInput, maxX, maxY, x, y, xStart, yStart, point as %Integer
+	Try {
+		Do ..Input(file, .input)
+		//create grid, find all poi's
+		Set xStart=0, yStart=0
+		For y=1:1:input {
+			For x=1:1:$Length(input(y)) {
+				Set point=$E(input(y),x)
+				Set %grid(x,y)=point
+				If point="0" {  //starting point
+					Set xStart=x, yStart=y
+				}
+				If point?1N {   //point of interest
+					set point(point)=x_","_y
+				}
+			}
+		}
+		Do ..Points(.point)
+		set %minLength=""
+		Do ..Combinations("")
+		Write "min length = ",%minLength,!  //length of smallest path
+		Write "minCombi = ",%minCombi,!     //order of poi's in path
+		Write "len combi = ",%lenCombi,!    //length of all intermediate paths between poi's
+		Quit
+	} catch {
+		Write "Error : ",$ZError,!		
+	}
+]]></Implementation>
+</Method>
+
+<Method name="Points">
+<Description>
+Calculate pathlength of all pairs of points 0-7</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>point</FormalSpec>
+<Implementation><![CDATA[
+	#Dim startLength as %Integer = 50  //part2 needs longer length = 200
+	#Dim point2 as %Integer
+	#Dim path as %String
+	Set point="" For {
+		Set point=$Order(point(point)) If point="" Quit
+		set point2=point For {
+			Set point2=$Order(point(point2)) If point2="" Quit
+			If $Data(^points(point,point2)) Continue
+			Set path="",%pathLength=startLength,%count=0
+			write point,"->",point2,!
+			Do ..Move($Piece(point(point),",",1),$Piece(point(point),",",2),$Piece(point(point2),",",1),$Piece(point(point2),",",2),path)
+			If %pathLength'=startLength {  //store the distance between points
+				set ^points(point,point2)=%pathLength
+				set ^points(point2,point)=%pathLength
+			}
+		}
+	}
+]]></Implementation>
+</Method>
+
+<Method name="Combinations">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>s</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	#Dim ok as %Boolean = 0
+	#Dim lenCombi, s2 as %String
+	#Dim iLetter, length, iS, len as %Integer
+	#Dim letter as %Char
+	
+	If $Length(s)=7 {
+		Set length=0
+		Set lenCombi=""
+		set s2="0"_s      //this is part1 : we need to start on poi 0
+		//set s2="0"_s_"0"  //this is part2 : we need to start and finish on poi 0
+		For iS=2:1:$Length(s2) {
+			If '$Data(^points($E(s2,iS-1),$E(s2,iS))) set length=9999999 Quit
+			Set len=^points($E(s2,iS-1),$E(s2,iS))
+			Set length=length+len
+			Set lenCombi=lenCombi_" "_len
+		}
+		If (length<%minLength)!(%minLength="") Set %minLength=length,%minCombi=s,%lenCombi=lenCombi
+	} else {  //try all combinations by adding at each position one of the 8 poi's
+		For iLetter=1:1:7 {
+			Set letter=$E("1234567",iLetter)
+			If s'[letter {
+				Set ok = ..Combinations(s_letter)
+				If ok Quit
+			}
+		}
+	}
+	Quit ok
+]]></Implementation>
+</Method>
+
+<Method name="Move">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>x,y,x1,y1,path</FormalSpec>
+<Implementation><![CDATA[
+	#Dim move as %String
+	#Dim deltaX, deltaY, dist as %Integer
+	#Dim sort as Array of %String
+	set %count=%count+1
+	If (x=x1)&(y=y1) {  //finished
+		If ($ListLength(path)<%pathLength)!(%pathLength="") Set %pathLength=$ListLength(path) W %pathLength," "
+	} elseIf ($ListLength(path)'<%pathLength)&(%pathLength'="") {
+		//path is already longer than the current smallest path
+		Quit
+	} elseIf (($ListLength(path)+..Distance(x,y,x1,y1))'<%pathLength)&(%pathLength'="") {
+		//path + minimal distance of current location to goal is already longer than current smallest path
+		Quit
+	} else { 
+		For move="1,0","0,1","-1,0","0,-1" {
+			Set deltaX=$Piece(move,",",1)
+			Set deltaY=$Piece(move,",",2)
+			If '$Data(%grid(x+deltaX,y+deltaY)) Continue  //already been there
+			If %grid(x+deltaX,y+deltaY)="#" Continue      //we hit a wall !
+			If $ListFind(path,$Lb(x+deltaX,y+deltaY)) Continue  //already in our path
+			set sort(..Distance(x+deltaX,y+deltaY,x1,y1),move)=""
+		}
+		//take next move according to the direction that will be closest to goal
+		Set dist="" For {
+			Set dist=$Order(sort(dist)) if dist="" Quit
+			set move="" For {
+				set move=$order(sort(dist,move)) If move="" Quit
+				Set deltaX=$Piece(move,",",1)
+				Set deltaY=$Piece(move,",",2)
+				Do ..Move(x+deltaX,y+deltaY, x1, y1, path_$Lb($Lb(x+deltaX,y+deltaY)))
+			}
+		}
+	}
+]]></Implementation>
+</Method>
+
+<Method name="Distance">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>x0,y0,x1,y1</FormalSpec>
+<Implementation><![CDATA[	Quit $ZAbs(x1-x0)+$ZAbs(y1-y0)
+]]></Implementation>
+</Method>
+</Class>
+</Export>

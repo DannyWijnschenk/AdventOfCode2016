@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2016.1 (Build 656U)" ts="2017-11-25 12:01:03">
+<Class name="AOC2016.Day23">
+<Super>AOC2016.Utils</Super>
+<TimeChanged>64610,84225.634347</TimeChanged>
+<TimeCreated>64607,58515.357821</TimeCreated>
+
+<Method name="Part">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%String="day23.txt",part:%Integer=1</FormalSpec>
+<Implementation><![CDATA[
+	#Dim iInput, counter, next as %Integer
+	#Dim input, instruction, instruction2, param1, param2 as %String
+	#Dim var, register, line as %String
+	
+	For var="a","b","c","d" Set register(var)=0
+	set register("a") = $Select(part = 1:7,1:12)
+	
+ 	Try {
+		Do ..Input(file, .input)
+		Set iInput = 1
+		set counter=0
+		While iInput '> input {
+			set counter=counter+1
+			Set line = input(iInput)
+			Set instruction=$Piece(line," ",1)
+			Set param1=$Piece(line," ",2)
+			Set param2=$Piece(line," ",3)
+			If instruction = "cpy" {
+				If $Data(register(param2)) Set register(param2)=$Select($Data(register(param1)):register(param1),1:param1)
+			} elseIf instruction = "inc" {
+				If $Data(register(param1)) Set register(param1) = register(param1) + 1
+			} elseIf instruction = "dec" {
+				If $Data(register(param1)) Set register(param1) = register(param1) - 1
+			} elseIf instruction = "jnz" {
+				If $Select($Data(register(param1)):register(param1),1:param1)'=0 {
+					Set iInput = iInput + $S($Data(register(param2)):register(param2),1:param2) -1  //-1 since every loop will do +1 anyway
+				}
+			} elseif instruction = "tgl" {
+				set next=$S($Data(register(param1)):register(param1),1:param1)+iInput
+				If $Data(input(next)) {
+					set instruction2=$Piece(input(next)," ",1)
+					If instruction2 = "inc" {
+						set instruction2="dec"
+					} elseIf (instruction2="dec")!(instruction2="tgl") {
+						set instruction2="inc"
+					} elseIf (instruction2="jnz") {
+						set instruction2="cpy"
+					} elseIf (instruction2="cpy") {
+						set instruction2="jnz"
+					}
+					set $Piece(input(next)," ",1)=instruction2
+				}
+			}			
+			Set iInput = iInput + 1
+			If (counter#1000000)=0 {
+				zw register
+				Write "#",iInput,!
+			}
+		}
+ 	} catch {
+	 	Write "Error : ",$ZError,!
+ 	}
+ 	Write "register a = ",register("a"),!
+]]></Implementation>
+</Method>
+</Class>
+</Export>
